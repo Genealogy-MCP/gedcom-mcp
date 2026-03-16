@@ -7,7 +7,7 @@ COPY src/ src/
 
 RUN uv sync --locked --no-dev --no-editable
 
-FROM python:3.12-slim-bookworm
+FROM python:3.14-slim-bookworm
 
 WORKDIR /app
 
