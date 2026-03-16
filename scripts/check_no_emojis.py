@@ -1,0 +1,104 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 Federico Ariel Castagnini
+"""Pre-commit hook to check for emojis in files."""
+
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+
+def has_emojis(text: str) -> bool:
+    """
+    Check if text contains emoji characters using explicit Unicode ranges.
+
+    Args:
+        text: Text content to check.
+
+    Returns:
+        True if emojis are found, False otherwise.
+    """
+    for char in text:
+        code_point = ord(char)
+        if (
+            0x1F600 <= code_point <= 0x1F64F  # Emoticons
+            or 0x1F300 <= code_point <= 0x1F5FF  # Misc symbols and pictographs
+            or 0x1F680 <= code_point <= 0x1F6FF  # Transport and map symbols
+            or 0x1F1E0 <= code_point <= 0x1F1FF  # Flags
+            or 0x2600 <= code_point <= 0x26FF  # Misc symbols
+            or 0x2700 <= code_point <= 0x27BF  # Dingbats
+            or 0x1F900 <= code_point <= 0x1F9FF  # Supplemental symbols
+            or 0x1FA70 <= code_point <= 0x1FAFF  # Extended pictographs
+        ):
+            return True
+
+    return False
+
+
+def check_file_for_emojis(file_path: Path) -> tuple[bool, list[tuple[int, str]]]:
+    """
+    Check a single file for emoji characters.
+
+    Args:
+        file_path: Path to file to check.
+
+    Returns:
+        Tuple of (has_emojis, list of (line_number, line_content) with emojis).
+    """
+    try:
+        with open(file_path, encoding="utf-8") as f:
+            lines = f.readlines()
+    except (UnicodeDecodeError, PermissionError):
+        return False, []
+
+    emoji_lines = []
+    for line_num, line in enumerate(lines, 1):
+        if has_emojis(line):
+            emoji_lines.append((line_num, line.rstrip()))
+
+    return bool(emoji_lines), emoji_lines
+
+
+def main() -> int:
+    """
+    Check all provided files for emojis.
+
+    Returns:
+        0 if no emojis found, 1 if emojis found.
+    """
+    if len(sys.argv) < 2:
+        print("Usage: check_no_emojis.py <file1> [file2] ...")
+        return 1
+
+    files_with_emojis = []
+
+    for file_path_str in sys.argv[1:]:
+        file_path = Path(file_path_str)
+
+        if not file_path.exists():
+            continue
+
+        if file_path.is_file():
+            has_emoji, emoji_lines = check_file_for_emojis(file_path)
+            if has_emoji:
+                files_with_emojis.append((file_path, emoji_lines))
+
+    if files_with_emojis:
+        print("ERROR: Emojis found in the following files:")
+        print("Emojis are not allowed to maintain clean, professional code.")
+        print()
+
+        for file_path, emoji_lines in files_with_emojis:
+            print(f"File: {file_path}")
+            for line_num, line_content in emoji_lines:
+                print(f"  Line {line_num}: {line_content}")
+            print()
+
+        print("Please remove all emojis from the above files before committing.")
+        return 1
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

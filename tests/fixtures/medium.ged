@@ -1,0 +1,217 @@
+0 HEAD
+1 SOUR Test
+2 VERS 1.0
+1 GEDC
+2 VERS 5.5.1
+2 FORM LINEAGE-LINKED
+1 CHAR UTF-8
+1 FILE medium.ged
+1 SUBM @S1@
+0 @S1@ SUBM
+1 NAME Test Submitter
+0 @I1@ INDI
+1 NAME William /Adams/
+2 GIVN William
+2 SURN Adams
+1 SEX M
+1 BIRT
+2 DATE 1 JAN 1800
+2 PLAC Boston, Massachusetts, USA
+1 DEAT
+2 DATE 15 MAR 1870
+2 PLAC Boston, Massachusetts, USA
+1 FAMS @F1@
+0 @I2@ INDI
+1 NAME Elizabeth /Brown/
+2 GIVN Elizabeth
+2 SURN Brown
+1 SEX F
+1 BIRT
+2 DATE 5 JUN 1805
+2 PLAC New York, New York, USA
+1 DEAT
+2 DATE 20 DEC 1880
+1 FAMS @F1@
+0 @I3@ INDI
+1 NAME George /Adams/
+2 GIVN George
+2 SURN Adams
+1 SEX M
+1 BIRT
+2 DATE 10 APR 1825
+2 PLAC Boston, Massachusetts, USA
+1 DEAT
+2 DATE 5 NOV 1890
+1 FAMC @F1@
+1 FAMS @F2@
+0 @I4@ INDI
+1 NAME Sarah /Clark/
+2 GIVN Sarah
+2 SURN Clark
+1 SEX F
+1 BIRT
+2 DATE 15 SEP 1830
+2 PLAC Philadelphia, Pennsylvania, USA
+1 DEAT
+2 DATE 1 FEB 1900
+1 FAMS @F2@
+0 @I5@ INDI
+1 NAME Henry /Adams/
+2 GIVN Henry
+2 SURN Adams
+1 SEX M
+1 BIRT
+2 DATE 20 JUL 1850
+2 PLAC Boston, Massachusetts, USA
+1 DEAT
+2 DATE 30 DEC 1920
+1 FAMC @F2@
+1 FAMS @F3@
+0 @I6@ INDI
+1 NAME Martha /Davis/
+2 GIVN Martha
+2 SURN Davis
+1 SEX F
+1 BIRT
+2 DATE 12 MAR 1855
+2 PLAC Chicago, Illinois, USA
+1 DEAT
+2 DATE 8 JAN 1930
+1 FAMS @F3@
+0 @I7@ INDI
+1 NAME Robert /Adams/
+2 GIVN Robert
+2 SURN Adams
+1 SEX M
+1 BIRT
+2 DATE 3 FEB 1875
+2 PLAC Boston, Massachusetts, USA
+1 DEAT
+2 DATE 22 AUG 1945
+1 FAMC @F3@
+1 FAMS @F4@
+0 @I8@ INDI
+1 NAME Alice /Evans/
+2 GIVN Alice
+2 SURN Evans
+1 SEX F
+1 BIRT
+2 DATE 18 OCT 1880
+2 PLAC New York, New York, USA
+1 DEAT
+2 DATE 14 APR 1960
+1 FAMS @F4@
+0 @I9@ INDI
+1 NAME Thomas /Adams/
+2 GIVN Thomas
+2 SURN Adams
+1 SEX M
+1 BIRT
+2 DATE 7 MAY 1900
+2 PLAC Boston, Massachusetts, USA
+1 DEAT
+2 DATE 11 SEP 1975
+1 FAMC @F4@
+0 @I10@ INDI
+1 NAME Margaret /Adams/
+2 GIVN Margaret
+2 SURN Adams
+1 SEX F
+1 BIRT
+2 DATE 25 NOV 1830
+2 PLAC Boston, Massachusetts, USA
+1 FAMC @F1@
+0 @I11@ INDI
+1 NAME Charles /Adams/
+2 GIVN Charles
+2 SURN Adams
+1 SEX M
+1 BIRT
+2 DATE 14 AUG 1828
+2 PLAC Boston, Massachusetts, USA
+1 DEAT
+2 DATE 3 MAR 1895
+1 FAMC @F1@
+1 FAMS @F5@
+0 @I12@ INDI
+1 NAME Helen /Foster/
+2 GIVN Helen
+2 SURN Foster
+1 SEX F
+1 BIRT
+2 DATE 9 DEC 1832
+2 PLAC Salem, Massachusetts, USA
+1 FAMS @F5@
+0 @I13@ INDI
+1 NAME Edward /Adams/
+2 GIVN Edward
+2 SURN Adams
+1 SEX M
+1 BIRT
+2 DATE 1 JAN 1855
+2 PLAC Boston, Massachusetts, USA
+1 FAMC @F5@
+0 @I14@ INDI
+1 NAME Dorothy /Adams/
+2 GIVN Dorothy
+2 SURN Adams
+1 SEX F
+1 BIRT
+2 DATE 22 JUN 1857
+2 PLAC Boston, Massachusetts, USA
+1 FAMC @F5@
+0 @I15@ INDI
+1 NAME Anna /Green/
+2 GIVN Anna
+2 SURN Green
+1 SEX F
+1 BIRT
+2 DATE 8 MAR 1852
+2 PLAC Concord, Massachusetts, USA
+1 FAMS @F3@
+0 @SRC1@ SOUR
+1 TITL Massachusetts Vital Records
+1 AUTH Commonwealth of Massachusetts
+1 PUBL State Archives, Boston
+1 ABBR MA Vital Records
+0 @N1@ NOTE
+1 CONT Family information compiled from public records.
+0 @F1@ FAM
+1 HUSB @I1@
+1 WIFE @I2@
+1 CHIL @I3@
+1 CHIL @I10@
+1 CHIL @I11@
+1 MARR
+2 DATE 15 JUN 1824
+2 PLAC Boston, Massachusetts, USA
+0 @F2@ FAM
+1 HUSB @I3@
+1 WIFE @I4@
+1 CHIL @I5@
+1 MARR
+2 DATE 1 OCT 1849
+2 PLAC Philadelphia, Pennsylvania, USA
+0 @F3@ FAM
+1 HUSB @I5@
+1 WIFE @I6@
+1 CHIL @I7@
+1 MARR
+2 DATE 12 MAY 1874
+2 PLAC Chicago, Illinois, USA
+0 @F4@ FAM
+1 HUSB @I7@
+1 WIFE @I8@
+1 CHIL @I9@
+1 MARR
+2 DATE 20 SEP 1899
+2 PLAC New York, New York, USA
+0 @F5@ FAM
+1 HUSB @I11@
+1 WIFE @I12@
+1 CHIL @I13@
+1 CHIL @I14@
+1 MARR
+2 DATE 5 APR 1854
+2 PLAC Salem, Massachusetts, USA
+0 TRLR

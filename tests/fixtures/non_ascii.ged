@@ -1,0 +1,34 @@
+0 HEAD
+1 SOUR Test
+1 GEDC
+2 VERS 5.5.1
+2 FORM LINEAGE-LINKED
+1 CHAR ANSI
+0 @I1@ INDI
+1 NAME René /Descartes/
+2 GIVN René
+2 SURN Descartes
+1 SEX M
+1 BIRT
+2 DATE 31 MAR 1596
+2 PLAC La Haye en Touraine, Indre-et-Loire, France
+1 DEAT
+2 DATE 11 FEB 1650
+2 PLAC Stockholm, Sverége
+0 @I2@ INDI
+1 NAME María /García/
+2 GIVN María
+2 SURN García
+1 SEX F
+1 BIRT
+2 DATE 5 JUN 1800
+2 PLAC Málaga, Andalucía, España
+0 @I3@ INDI
+1 NAME Günther /Müller/
+2 GIVN Günther
+2 SURN Müller
+1 SEX M
+1 BIRT
+2 DATE 12 OCT 1850
+2 PLAC München, Bayern, Deutschland
+0 TRLR

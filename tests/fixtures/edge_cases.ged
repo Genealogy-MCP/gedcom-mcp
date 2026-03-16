@@ -1,0 +1,27 @@
+0 HEAD
+1 SOUR Test
+1 GEDC
+2 VERS 5.5.1
+2 FORM LINEAGE-LINKED
+1 CHAR UTF-8
+0 @I1@ INDI
+1 NAME John /Smith/
+1 SEX M
+1 NOTE This is a long note that spans
+2 CONT multiple lines using the CONT
+2 CONT continuation tag.
+1 NOTE Short note with con
+2 CONC catenation on same line
+0 @I2@ INDI
+1 NAME /Unknown/
+1 BIRT
+2 DATE ABT 1850
+0 @I3@ INDI
+1 NAME Jane //
+1 SEX F
+1 BIRT
+2 DATE BET 1 JAN 1900 AND 31 DEC 1910
+0 @N1@ NOTE
+1 CONT This is a top-level note
+2 CONT that spans multiple lines.
+0 TRLR
