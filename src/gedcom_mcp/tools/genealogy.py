@@ -4,95 +4,26 @@
 
 from __future__ import annotations
 
-from collections import deque
 from typing import Any
 
 from mcp.server.fastmcp import Context, FastMCP
 from mcp.types import ToolAnnotations
 
-from gedcom_mcp.parser.models import GedcomDatabase, Individual
 from gedcom_mcp.tools._errors import (
     McpToolError,
     get_app_context,
     raise_tool_error,
     require_database,
 )
-
-
-def _person_summary(indi: Individual) -> str:
-    """One-line summary: xref, name, birth/death years."""
-    name = indi.names[0].full if indi.names else "Unknown"
-    years = ""
-    b_year = indi.birth.date.year if indi.birth and indi.birth.date else None
-    d_year = indi.death.date.year if indi.death and indi.death.date else None
-    if b_year or d_year:
-        years = f" ({b_year or '?'}-{d_year or '?'})"
-    return f"{indi.xref}: {name}{years}"
-
-
-def _get_ancestors(xref: str, db: GedcomDatabase, max_gen: int) -> list[tuple[int, Individual]]:
-    """BFS ancestor traversal returning (generation, individual) pairs."""
-    result: list[tuple[int, Individual]] = []
-    visited: set[str] = set()
-    queue: deque[tuple[str, int]] = deque([(xref, 0)])
-
-    while queue:
-        current_xref, gen = queue.popleft()
-        if current_xref in visited:
-            continue
-        visited.add(current_xref)
-
-        indi = db.individuals.get(current_xref)
-        if not indi:
-            continue
-
-        if gen > 0:
-            result.append((gen, indi))
-
-        if gen >= max_gen:
-            continue
-
-        if indi.family_child_xref:
-            fam = db.families.get(indi.family_child_xref)
-            if fam:
-                if fam.husband_xref and fam.husband_xref not in visited:
-                    queue.append((fam.husband_xref, gen + 1))
-                if fam.wife_xref and fam.wife_xref not in visited:
-                    queue.append((fam.wife_xref, gen + 1))
-
-    return result
-
-
-def _get_descendants(xref: str, db: GedcomDatabase, max_gen: int) -> list[tuple[int, Individual]]:
-    """BFS descendant traversal returning (generation, individual) pairs."""
-    result: list[tuple[int, Individual]] = []
-    visited: set[str] = set()
-    queue: deque[tuple[str, int]] = deque([(xref, 0)])
-
-    while queue:
-        current_xref, gen = queue.popleft()
-        if current_xref in visited:
-            continue
-        visited.add(current_xref)
-
-        indi = db.individuals.get(current_xref)
-        if not indi:
-            continue
-
-        if gen > 0:
-            result.append((gen, indi))
-
-        if gen >= max_gen:
-            continue
-
-        for fxref in indi.family_spouse_xrefs:
-            fam = db.families.get(fxref)
-            if fam:
-                for cxref in fam.children_xrefs:
-                    if cxref not in visited:
-                        queue.append((cxref, gen + 1))
-
-    return result
+from gedcom_mcp.tools._formatting import (
+    get_ancestors as _get_ancestors,
+)
+from gedcom_mcp.tools._formatting import (
+    get_descendants as _get_descendants,
+)
+from gedcom_mcp.tools._formatting import (
+    person_summary as _person_summary,
+)
 
 
 def register(mcp: FastMCP) -> None:
@@ -200,7 +131,10 @@ def register(mcp: FastMCP) -> None:
             if not descendants:
                 return f"No descendants found for {_person_summary(root)}."
 
-            lines = [f"Descendants of {_person_summary(root)} (up to {max_gen} generations):", ""]
+            lines = [
+                f"Descendants of {_person_summary(root)} (up to {max_gen} generations):",
+                "",
+            ]
             current_gen = 0
             for gen, indi in descendants:
                 if gen != current_gen:
