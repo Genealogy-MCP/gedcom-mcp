@@ -9,8 +9,7 @@ from typing import Any
 from mcp.server.fastmcp import Context, FastMCP
 from mcp.types import ToolAnnotations
 
-from gedcom_mcp.tools._errors import McpToolError, raise_tool_error, require_database
-from gedcom_mcp.tools._formatting import format_family_concise, format_family_detailed
+from gedcom_mcp.tools._handlers import handle_get_family
 
 
 def register(mcp: FastMCP) -> None:
@@ -39,33 +38,4 @@ def register(mcp: FastMCP) -> None:
 
         A GEDCOM file must be loaded first via load_file.
         """
-        try:
-            db = require_database(ctx)
-            formatter = (
-                format_family_concise if response_format == "concise" else format_family_detailed
-            )
-
-            if xref in db.families:
-                return formatter(db.families[xref], db)
-
-            if xref in db.individuals:
-                indi = db.individuals[xref]
-                if not indi.family_spouse_xrefs:
-                    return f"Individual {xref} is not a spouse in any family."
-                results: list[str] = []
-                for fxref in indi.family_spouse_xrefs:
-                    fam = db.families.get(fxref)
-                    if fam:
-                        results.append(formatter(fam, db))
-                if not results:
-                    return f"No family records found for individual {xref}."
-                return "\n\n".join(results)
-
-            raise McpToolError(
-                f"'{xref}' not found as a family or individual. "
-                "Use search_persons to find valid cross-reference IDs."
-            )
-        except McpToolError:
-            raise
-        except Exception as e:
-            raise_tool_error(e, "get family", entity_type="family", identifier=xref)
+        return await handle_get_family(ctx, xref=xref, response_format=response_format)

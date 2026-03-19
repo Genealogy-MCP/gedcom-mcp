@@ -9,9 +9,7 @@ from typing import Any
 from mcp.server.fastmcp import Context, FastMCP
 from mcp.types import ToolAnnotations
 
-from gedcom_mcp.parser import parse_file
-from gedcom_mcp.tools._errors import McpToolError, get_app_context, raise_tool_error
-from gedcom_mcp.tools._formatting import validate_path
+from gedcom_mcp.tools._handlers import handle_load_file
 
 
 def register(mcp: FastMCP) -> None:
@@ -35,29 +33,4 @@ def register(mcp: FastMCP) -> None:
         Requires an absolute file path. Returns a summary with the filename,
         GEDCOM version, and record counts.
         """
-        app_ctx = get_app_context(ctx)
-        try:
-            resolved = validate_path(
-                file_path,
-                app_ctx.settings.allowed_base_dirs,
-                app_ctx.settings.max_file_size_mb,
-            )
-            raw = resolved.read_bytes()
-            database = parse_file(raw)
-            app_ctx.database = database
-
-            basename = resolved.name
-            version = database.header.gedcom_version or "unknown"
-            lines = [
-                f"Loaded: {basename}",
-                f"GEDCOM version: {version}",
-                f"Individuals: {len(database.individuals)}",
-                f"Families: {len(database.families)}",
-                f"Sources: {len(database.sources)}",
-                f"Notes: {len(database.notes)}",
-            ]
-            return "\n".join(lines)
-        except McpToolError:
-            raise
-        except Exception as e:
-            raise_tool_error(e, "file load")
+        return await handle_load_file(ctx, file_path=file_path)
