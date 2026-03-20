@@ -33,12 +33,22 @@ def create_server() -> FastMCP:
     """Create and configure the GEDCOM MCP server with all tools registered."""
     mcp = FastMCP("GEDCOM", lifespan=app_lifespan)
 
-    from gedcom_mcp.tools import families, file_management, genealogy, persons, stats
+    from gedcom_mcp.tools import (
+        execute,
+        families,
+        file_management,
+        genealogy,
+        persons,
+        search,
+        stats,
+    )
 
     file_management.register(mcp)
     persons.register(mcp)
     families.register(mcp)
     genealogy.register(mcp)
     stats.register(mcp)
+    search.register(mcp)
+    execute.register(mcp)
 
     return mcp
