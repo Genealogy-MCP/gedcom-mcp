@@ -123,11 +123,13 @@ def test_search_persons_params_all_optional() -> None:
 
 
 def test_search_persons_params_with_values() -> None:
-    params = SearchPersonsParams.model_validate({
-        "name": "John",
-        "birth_year_min": 1900,
-        "max_results": 10,
-    })
+    params = SearchPersonsParams.model_validate(
+        {
+            "name": "John",
+            "birth_year_min": 1900,
+            "max_results": 10,
+        }
+    )
     assert params.name == "John"
     assert params.birth_year_min == 1900
     assert params.max_results == 10
