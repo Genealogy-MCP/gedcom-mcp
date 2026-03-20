@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-03-19
+
+### Changed
+
+- **BREAKING:** Replace 7 individual MCP tools with 2 meta-tools (`search` +
+  `execute`) following the Code Mode architecture (MCP-29). All 7 operations
+  remain available via the `execute` dispatcher.
+- LLM context overhead reduced from ~7K tokens (7 tool schemas) to ~2K tokens
+  (2 tool schemas).
+- `require_database()` error message updated to reference "Execute the
+  'load_file' operation" instead of "Use the load_file tool".
+
+### Added
+
+- Operation registry (`_registry.py`): typed metadata for all 7 operations with
+  keyword search and Pydantic parameter validation models.
+- `search` tool: discovers operations by keyword matching against name, summary,
+  and tags. Empty query returns all operations.
+- `execute` tool: validates parameters via Pydantic, checks database guard for
+  operations that require it, and dispatches to the appropriate handler.
+- `_formatting.py`: extracted pure helper functions (matchers, formatters, BFS
+  traversals, path validation) for independent testability.
+- `_handlers.py`: 7 standalone async handler functions decoupled from the MCP
+  framework.
+- 151 tests (up from 109), 92% branch coverage.
+
+### Removed
+
+- Individual tool modules: `file_management.py`, `persons.py`, `families.py`,
+  `genealogy.py`, `stats.py`.
+
 ## [0.1.0] - 2026-03-16
 
 ### Added
