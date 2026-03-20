@@ -79,6 +79,6 @@ def require_database(ctx: Any) -> GedcomDatabase:
     app_ctx = get_app_context(ctx)
     if app_ctx.database is None:
         raise McpToolError(
-            "No GEDCOM file is loaded. Use the load_file tool first to load a .ged file."
+            "No GEDCOM file is loaded. Execute the 'load_file' operation first to load a .ged file."
         )
     return app_ctx.database  # type: ignore[no-any-return]
