@@ -17,6 +17,10 @@ make run-stdio     # stdio transport
 
 ## Architecture
 
+This server uses the Code Mode architecture (MCP-29): exactly 2 meta-tools
+(`search` + `execute`) instead of individual per-operation tools. The LLM
+discovers operations via `search` and runs them via `execute`.
+
 ```
 src/gedcom_mcp/
   __init__.py       # main() entry point + create_server()
@@ -32,12 +36,19 @@ src/gedcom_mcp/
     builder.py      # Record-to-model construction + date/name/place parsing
   tools/
     _errors.py      # McpToolError, raise_tool_error, get_app_context, require_database
-    file_management.py  # load_file (path validation, security checks)
-    persons.py      # search_persons, get_person
-    families.py     # get_family
-    genealogy.py    # get_ancestors, get_descendants (BFS with cycle detection)
-    stats.py        # get_stats
+    _formatting.py  # Pure helpers: matchers, formatters, BFS traversals, path validation
+    _handlers.py    # 7 handle_*() async functions (orchestration + error handling)
+    _registry.py    # OperationDef + OPERATION_REGISTRY + Pydantic param models + search_operations()
+    search.py       # search meta-tool: operation discovery by keyword (MCP-31)
+    execute.py      # execute meta-tool: validated dispatch to handlers (MCP-32)
 ```
+
+### Tools (2 meta-tools, 7 operations)
+
+Tools: `search` (operation discovery), `execute` (operation dispatch)
+
+Operations: `load_file`, `search_persons`, `get_person`, `get_family`,
+`get_ancestors`, `get_descendants`, `get_stats`
 
 ### Data Flow
 
@@ -53,8 +64,8 @@ Raw .ged bytes -> encoding.py (detect charset, decode)
 
 Unlike wikitree-mcp (stateless API proxy), gedcom-mcp is stateful:
 - `AppContext.database` starts as `None`
-- `load_file` tool populates it by parsing a `.ged` file
-- All other tools guard with `require_database()` which raises `McpToolError` if no file is loaded
+- The `load_file` operation populates it by parsing a `.ged` file
+- All other operations guard with `require_database()` which raises `McpToolError` if no file is loaded
 - Calling `load_file` again replaces the previously loaded database
 
 ## Key Settings
@@ -84,7 +95,10 @@ No required env vars. This server is fully offline -- no network calls, no authe
 - `tests/test_parser_*.py` -- Parser unit tests (lines, records, encoding, builder, models)
 - `tests/test_settings.py` -- Settings validation
 - `tests/test_errors.py` -- Error utility tests
-- `tests/test_tools_*.py` -- Tool tests using mock contexts with parsed fixture databases
+- `tests/test_registry.py` -- Registry completeness, search matching, param validation
+- `tests/test_search.py` -- `search` meta-tool integration tests via FastMCP
+- `tests/test_execute.py` -- `execute` meta-tool: dispatch, validation, error handling
+- `tests/test_handlers.py` -- Handler functions called directly (no MCP framework)
 
 ### Fixtures (`tests/fixtures/`)
 - `minimal.ged` -- 3 individuals, 1 family (happy path)
@@ -94,9 +108,9 @@ No required env vars. This server is fully offline -- no network calls, no authe
 - `non_ascii.ged` -- Latin-1 encoded with accented names
 
 ### Mock approach
-Tool tests create `MagicMock` contexts with `AppContext` containing parsed fixture databases.
-No network mocking needed (offline server). Helper: `_find_tool(mcp, name)` extracts tools
-from the FastMCP internal registry.
+Handler and tool tests create `MagicMock` contexts with `AppContext` containing parsed
+fixture databases. No network mocking needed (offline server). Helper: `_find_tool(mcp, name)`
+extracts tools from the FastMCP internal registry for integration tests.
 
 ## CI
 
