@@ -10,9 +10,9 @@ Only the current release receives security fixes. No LTS versions are maintained
 
 ## Reporting a Vulnerability
 
-**Please do not open a public GitHub issue for security vulnerabilities.**
+**Please do not open a public issue for security vulnerabilities.**
 
-Use [GitHub Private Security Advisories](https://github.com/Genealogy-MCP/gedcom-mcp/security/advisories/new)
+Use [GitLab confidential issues](https://gitlab.com/genealogy-mcp/gedcom-mcp/-/issues/new?confidential=true)
 to report any vulnerability confidentially.
 
 ### What to expect

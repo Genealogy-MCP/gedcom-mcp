@@ -114,7 +114,7 @@ extracts tools from the FastMCP internal registry for integration tests.
 
 ## CI
 
-GitHub Actions: 3-job pipeline (lint+typecheck, test matrix py3.10-3.13, security audit).
+GitLab CI (`.gitlab-ci.yml`): 3-job pipeline (lint+typecheck, test matrix py3.10-3.13, security audit).
 No live tests -- everything is local file parsing.
 
 ## Security

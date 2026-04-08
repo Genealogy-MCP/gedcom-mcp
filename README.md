@@ -2,7 +2,9 @@
 
 MCP server for querying local [GEDCOM](https://en.wikipedia.org/wiki/GEDCOM) genealogy files through AI assistants. Load any `.ged` file and search, browse, and traverse your family tree without leaving your AI workflow.
 
-Part of the [Genealogy-MCP](https://github.com/Genealogy-MCP) organization.
+Part of the [Genealogy-MCP](https://gitlab.com/genealogy-mcp) organization.
+
+**Note:** GitHub is a read-only mirror. Development happens on [GitLab](https://gitlab.com/genealogy-mcp/gedcom-mcp).
 
 ## Available Tools
 
