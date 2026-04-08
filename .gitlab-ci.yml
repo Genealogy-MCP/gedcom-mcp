@@ -15,9 +15,6 @@ variables:
 
 default:
   interruptible: true
-  before_script:
-    - pip install uv
-    - uv sync --group dev
   cache:
     key: "${CI_JOB_IMAGE}"
     paths:
@@ -39,6 +36,9 @@ lint-typecheck:
 
 .test-base:
   stage: test
+  before_script:
+    - pip install uv
+    - uv sync --group dev
   script:
     - uv run coverage run -m pytest tests/ -v
     - uv run coverage report
@@ -62,6 +62,9 @@ test-py3.13:
 security-audit:
   stage: security
   image: python:3.11-slim-bookworm
+  before_script:
+    - pip install uv
+    - uv sync --group dev
   script:
     - uv run pip-audit
 
