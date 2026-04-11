@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-# Copyright (C) 2026 Federico Ariel Castagnini
+# Copyright (C) 2026 Federico Castagnini
 """Pre-commit hook to check for emojis in files."""
 
 from __future__ import annotations

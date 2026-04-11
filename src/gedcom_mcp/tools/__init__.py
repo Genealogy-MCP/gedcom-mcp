@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-# Copyright (C) 2026 Federico Ariel Castagnini
+# Copyright (C) 2026 Federico Castagnini
 """Tool handlers for GEDCOM operations.
 
 Re-exports domain handler functions. Meta-tools (meta_search, meta_execute) are

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-# Copyright (C) 2026 Federico Ariel Castagnini
+# Copyright (C) 2026 Federico Castagnini
 """Pure formatting, matching, and traversal helpers for tool handlers.
 
 All functions in this module are pure (no MCP Context dependency) and can be
