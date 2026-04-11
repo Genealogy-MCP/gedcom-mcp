@@ -93,4 +93,18 @@ def create_server() -> FastMCP:
     ) -> list[TextContent]:
         return await execute_operation_tool({"operation": operation, "params": params or {}}, ctx)
 
+    @mcp.custom_route("/health", ["GET"])
+    async def health_check(request: Any) -> Any:
+        """Health check endpoint for Docker HEALTHCHECK."""
+        from starlette.responses import JSONResponse
+
+        return JSONResponse(
+            {
+                "status": "healthy",
+                "service": "GEDCOM MCP Server",
+                "tools": len(_META_TOOLS),
+                "operations": len(OPERATION_REGISTRY),
+            }
+        )
+
     return mcp
