@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-# Copyright (C) 2026 Federico Ariel Castagnini
+# Copyright (C) 2026 Federico Castagnini
 """Operation registry for Code Mode architecture (MCP-ORG-1 through MCP-ORG-4).
 
 Single source of truth for all operations the server supports. Each OperationEntry

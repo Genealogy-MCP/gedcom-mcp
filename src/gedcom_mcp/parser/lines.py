@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-# Copyright (C) 2026 Federico Ariel Castagnini
+# Copyright (C) 2026 Federico Castagnini
 """Line-level parsing of GEDCOM text into structured GedcomLine objects."""
 
 from __future__ import annotations

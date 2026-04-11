@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-# Copyright (C) 2026 Federico Ariel Castagnini
+# Copyright (C) 2026 Federico Castagnini
 """Execute meta-tool for validated operation dispatch (MCP-ORG-4)."""
 
 from __future__ import annotations

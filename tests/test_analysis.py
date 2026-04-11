@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-# Copyright (C) 2026 Federico Ariel Castagnini
+# Copyright (C) 2026 Federico Castagnini
 """Tests for analysis operation handlers: get_ancestors, get_descendants, get_stats."""
 
 from __future__ import annotations
