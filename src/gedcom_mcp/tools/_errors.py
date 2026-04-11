@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-# Copyright (C) 2026 Federico Ariel Castagnini
+# Copyright (C) 2026 Federico Castagnini
 """Shared error handling for MCP tool responses (MCP-8, MCP-10)."""
 
 from __future__ import annotations

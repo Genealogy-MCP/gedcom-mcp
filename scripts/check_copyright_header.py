@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-# Copyright (C) 2026 Federico Ariel Castagnini
+# Copyright (C) 2026 Federico Castagnini
 """Check that Python source files contain the required AGPL-3.0 SPDX header."""
 
 from __future__ import annotations
