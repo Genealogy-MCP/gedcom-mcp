@@ -15,6 +15,19 @@ make run           # streamable-http on port 8000
 make run-stdio     # stdio transport
 ```
 
+## Git Hosting Policy
+
+This repo lives on GitLab. GitHub is a read-only push-mirror.
+
+- All commits, MRs, issues, releases, CI, and container registry operations target
+  `gitlab.com/genealogy-mcp/gedcom-mcp` only.
+- Never run `gh` write commands against this repo — use `glab` instead. See the
+  `gh` → `glab` mapping table in the org root
+  [`../CLAUDE.md` — Git Hosting Policy](../CLAUDE.md#git-hosting-policy) for the
+  full command reference and the `GH-ORG-1..7` rules.
+- If a skill or sub-agent attempts a GitHub write operation, redirect it to the
+  `glab` equivalent or stop and ask the user.
+
 ## Architecture
 
 This server uses the Code Mode architecture (MCP-29): exactly 2 meta-tools
@@ -26,7 +39,8 @@ src/gedcom_mcp/
   __init__.py       # main() entry point + create_server()
   __main__.py       # python -m gedcom_mcp
   settings.py       # pydantic-settings; all env vars prefixed GEDCOM_
-  server.py         # AppContext (holds parsed database), app_lifespan, create_server
+  server.py         # AppContext, app_lifespan, _META_TOOLS dict, create_server
+  operations.py     # OperationEntry dataclass, OPERATION_REGISTRY, search_operations(), summarize_params()
   parser/
     __init__.py     # parse_file() pipeline: decode -> parse_lines -> build_records -> build_database
     encoding.py     # Charset detection (BOM + CHAR tag), decode to Unicode
@@ -35,12 +49,15 @@ src/gedcom_mcp/
     models.py       # Pydantic models: Individual, Family, GedcomSource, GedcomNote, etc.
     builder.py      # Record-to-model construction + date/name/place parsing
   tools/
+    __init__.py     # Re-exports handler functions (not meta-tools, avoids circular imports)
     _errors.py      # McpToolError, raise_tool_error, get_app_context, require_database
     _formatting.py  # Pure helpers: matchers, formatters, BFS traversals, path validation
-    _handlers.py    # 7 handle_*() async functions (orchestration + error handling)
-    _registry.py    # OperationDef + OPERATION_REGISTRY + Pydantic param models + search_operations()
-    search.py       # search meta-tool: operation discovery by keyword (MCP-31)
-    execute.py      # execute meta-tool: validated dispatch to handlers (MCP-32)
+    setup.py        # handle_load_file (category: setup)
+    search_ops.py   # handle_search_persons (category: search)
+    read_ops.py     # handle_get_person, handle_get_family (category: read)
+    analysis.py     # handle_get_ancestors, handle_get_descendants, handle_get_stats (category: analysis)
+    meta_search.py  # search meta-tool: operation discovery (MCP-ORG-3)
+    meta_execute.py # execute meta-tool: validated dispatch (MCP-ORG-4)
 ```
 
 ### Tools (2 meta-tools, 7 operations)
@@ -95,10 +112,13 @@ No required env vars. This server is fully offline -- no network calls, no authe
 - `tests/test_parser_*.py` -- Parser unit tests (lines, records, encoding, builder, models)
 - `tests/test_settings.py` -- Settings validation
 - `tests/test_errors.py` -- Error utility tests
-- `tests/test_registry.py` -- Registry completeness, search matching, param validation
-- `tests/test_search.py` -- `search` meta-tool integration tests via FastMCP
-- `tests/test_execute.py` -- `execute` meta-tool: dispatch, validation, error handling
-- `tests/test_handlers.py` -- Handler functions called directly (no MCP framework)
+- `tests/test_operations.py` -- Registry completeness, search scoring, summarize_params, categories
+- `tests/test_meta_search.py` -- `search` meta-tool integration tests via FastMCP
+- `tests/test_meta_execute.py` -- `execute` meta-tool: dispatch, validation, close-match suggestions
+- `tests/test_setup.py` -- load_file handler (category: setup)
+- `tests/test_search_ops.py` -- search_persons handler (category: search)
+- `tests/test_read_ops.py` -- get_person, get_family handlers (category: read)
+- `tests/test_analysis.py` -- get_ancestors, get_descendants, get_stats handlers (category: analysis)
 
 ### Fixtures (`tests/fixtures/`)
 - `minimal.ged` -- 3 individuals, 1 family (happy path)
