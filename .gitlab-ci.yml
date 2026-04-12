@@ -2,3 +2,6 @@ include:
   - project: facastagnini/ci-templates
     ref: main
     file: /pipelines/default.yml
+
+variables:
+  YAMLLINT_EXCLUDE: ".github"
