@@ -6,7 +6,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from mcp.server.fastmcp import Context
 from mcp.types import TextContent
 
 from gedcom_mcp.tools._errors import McpToolError, raise_tool_error, require_database
@@ -18,32 +17,26 @@ from gedcom_mcp.tools._formatting import (
 )
 
 
-async def handle_get_person(
-    ctx: Context[Any, Any, Any],
-    *,
-    xref: str,
-    response_format: str = "detailed",
-) -> list[TextContent]:
+async def handle_get_person(ctx: Any, params: Any) -> list[TextContent]:
     """Retrieve a specific individual by cross-reference ID.
 
     Args:
         ctx: MCP request context.
-        xref: Cross-reference ID (e.g. "@I1@").
-        response_format: "concise" or "detailed".
+        params: GetPersonParams with xref and response_format.
 
     Returns:
         Formatted person data.
     """
     try:
         db = require_database(ctx)
-        indi = db.individuals.get(xref)
+        indi = db.individuals.get(params.xref)
         if not indi:
             raise McpToolError(
-                f"Individual '{xref}' not found. "
+                f"Individual '{params.xref}' not found. "
                 "Use search_persons to find valid cross-reference IDs."
             )
 
-        if response_format == "concise":
+        if params.response_format == "concise":
             text = format_person_concise(indi, db)
         else:
             text = format_person_detailed(indi, db)
@@ -51,21 +44,15 @@ async def handle_get_person(
     except McpToolError:
         raise
     except Exception as e:
-        raise_tool_error(e, "get person", entity_type="individual", identifier=xref)
+        raise_tool_error(e, "get person", entity_type="individual", identifier=params.xref)
 
 
-async def handle_get_family(
-    ctx: Context[Any, Any, Any],
-    *,
-    xref: str,
-    response_format: str = "detailed",
-) -> list[TextContent]:
+async def handle_get_family(ctx: Any, params: Any) -> list[TextContent]:
     """Retrieve a family record by cross-reference ID.
 
     Args:
         ctx: MCP request context.
-        xref: Family or individual cross-reference ID.
-        response_format: "concise" or "detailed".
+        params: GetFamilyParams with xref and response_format.
 
     Returns:
         Formatted family data.
@@ -73,17 +60,17 @@ async def handle_get_family(
     try:
         db = require_database(ctx)
         formatter = (
-            format_family_concise if response_format == "concise" else format_family_detailed
+            format_family_concise if params.response_format == "concise" else format_family_detailed
         )
 
-        if xref in db.families:
-            text = formatter(db.families[xref], db)
+        if params.xref in db.families:
+            text = formatter(db.families[params.xref], db)
             return [TextContent(type="text", text=text)]
 
-        if xref in db.individuals:
-            indi = db.individuals[xref]
+        if params.xref in db.individuals:
+            indi = db.individuals[params.xref]
             if not indi.family_spouse_xrefs:
-                text = f"Individual {xref} is not a spouse in any family."
+                text = f"Individual {params.xref} is not a spouse in any family."
                 return [TextContent(type="text", text=text)]
             results: list[str] = []
             for fxref in indi.family_spouse_xrefs:
@@ -91,15 +78,15 @@ async def handle_get_family(
                 if fam:
                     results.append(formatter(fam, db))
             if not results:
-                text = f"No family records found for individual {xref}."
+                text = f"No family records found for individual {params.xref}."
                 return [TextContent(type="text", text=text)]
             return [TextContent(type="text", text="\n\n".join(results))]
 
         raise McpToolError(
-            f"'{xref}' not found as a family or individual. "
+            f"'{params.xref}' not found as a family or individual. "
             "Use search_persons to find valid cross-reference IDs."
         )
     except McpToolError:
         raise
     except Exception as e:
-        raise_tool_error(e, "get family", entity_type="family", identifier=xref)
+        raise_tool_error(e, "get family", entity_type="family", identifier=params.xref)

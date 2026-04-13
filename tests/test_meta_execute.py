@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # Copyright (C) 2026 Federico Castagnini
-"""Tests for the execute meta-tool via FastMCP."""
+"""Tests for the execute meta-tool via FastMCP (backed by mcp-codemode library)."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
-from mcp.types import TextContent
+from mcp_codemode import ExecuteOperationParams
 
 from gedcom_mcp.parser import parse_file
 from gedcom_mcp.server import AppContext, create_server
@@ -42,11 +42,11 @@ def _make_ctx(
 
 
 def _extract_text(result: Any) -> str:
-    """Extract text from tool result (handles str or list[TextContent])."""
+    """Extract text from tool result (handles various return types)."""
     if isinstance(result, str):
         return result
-    if isinstance(result, list) and result and isinstance(result[0], TextContent):
-        return "\n".join(item.text for item in result)
+    if isinstance(result, list) and result:
+        return "\n".join(getattr(item, "text", str(item)) for item in result)
     return str(result)
 
 
@@ -69,28 +69,31 @@ async def test_execute_unknown_operation(mcp: Any, fixtures_dir: Path) -> None:
     ctx = _make_ctx(fixtures_dir)
     tool = _find_tool(mcp, "execute")
     with pytest.raises(McpToolError, match="Unknown operation 'nonexistent'"):
-        await tool.fn(ctx=ctx, operation="nonexistent")
+        await tool.fn(ctx=ctx, arguments=ExecuteOperationParams(operation="nonexistent"))
 
 
 async def test_execute_unknown_operation_suggests_close_match(mcp: Any, fixtures_dir: Path) -> None:
     ctx = _make_ctx(fixtures_dir)
     tool = _find_tool(mcp, "execute")
     with pytest.raises(McpToolError, match="Did you mean"):
-        await tool.fn(ctx=ctx, operation="get_perosn")
+        await tool.fn(ctx=ctx, arguments=ExecuteOperationParams(operation="get_perosn"))
 
 
 async def test_execute_invalid_params(mcp: Any, fixtures_dir: Path) -> None:
     ctx = _make_ctx(fixtures_dir)
     tool = _find_tool(mcp, "execute")
     with pytest.raises(McpToolError, match="file_path"):
-        await tool.fn(ctx=ctx, operation="load_file", params={})
+        await tool.fn(ctx=ctx, arguments=ExecuteOperationParams(operation="load_file", params={}))
 
 
 async def test_execute_requires_database(mcp: Any) -> None:
     ctx = _make_ctx()
     tool = _find_tool(mcp, "execute")
     with pytest.raises(McpToolError, match="No GEDCOM file is loaded"):
-        await tool.fn(ctx=ctx, operation="search_persons", params={"name": "John"})
+        await tool.fn(
+            ctx=ctx,
+            arguments=ExecuteOperationParams(operation="search_persons", params={"name": "John"}),
+        )
 
 
 async def test_execute_load_file_no_database_check(mcp: Any, fixtures_dir: Path) -> None:
@@ -99,8 +102,10 @@ async def test_execute_load_file_no_database_check(mcp: Any, fixtures_dir: Path)
     result = _extract_text(
         await tool.fn(
             ctx=ctx,
-            operation="load_file",
-            params={"file_path": str(fixtures_dir / "minimal.ged")},
+            arguments=ExecuteOperationParams(
+                operation="load_file",
+                params={"file_path": str(fixtures_dir / "minimal.ged")},
+            ),
         )
     )
     assert "Loaded: minimal.ged" in result
@@ -115,7 +120,10 @@ async def test_execute_search_persons(mcp: Any, fixtures_dir: Path) -> None:
     ctx = _make_ctx(fixtures_dir)
     tool = _find_tool(mcp, "execute")
     result = _extract_text(
-        await tool.fn(ctx=ctx, operation="search_persons", params={"name": "John"})
+        await tool.fn(
+            ctx=ctx,
+            arguments=ExecuteOperationParams(operation="search_persons", params={"name": "John"}),
+        )
     )
     assert "@I1@" in result
     assert "John /Smith/" in result
@@ -124,7 +132,12 @@ async def test_execute_search_persons(mcp: Any, fixtures_dir: Path) -> None:
 async def test_execute_get_person(mcp: Any, fixtures_dir: Path) -> None:
     ctx = _make_ctx(fixtures_dir)
     tool = _find_tool(mcp, "execute")
-    result = _extract_text(await tool.fn(ctx=ctx, operation="get_person", params={"xref": "@I1@"}))
+    result = _extract_text(
+        await tool.fn(
+            ctx=ctx,
+            arguments=ExecuteOperationParams(operation="get_person", params={"xref": "@I1@"}),
+        )
+    )
     assert "John /Smith/" in result
 
 
@@ -134,8 +147,10 @@ async def test_execute_get_person_concise(mcp: Any, fixtures_dir: Path) -> None:
     result = _extract_text(
         await tool.fn(
             ctx=ctx,
-            operation="get_person",
-            params={"xref": "@I1@", "response_format": "concise"},
+            arguments=ExecuteOperationParams(
+                operation="get_person",
+                params={"xref": "@I1@", "response_format": "concise"},
+            ),
         )
     )
     assert "John /Smith/" in result
@@ -145,7 +160,12 @@ async def test_execute_get_person_concise(mcp: Any, fixtures_dir: Path) -> None:
 async def test_execute_get_family(mcp: Any, fixtures_dir: Path) -> None:
     ctx = _make_ctx(fixtures_dir)
     tool = _find_tool(mcp, "execute")
-    result = _extract_text(await tool.fn(ctx=ctx, operation="get_family", params={"xref": "@F1@"}))
+    result = _extract_text(
+        await tool.fn(
+            ctx=ctx,
+            arguments=ExecuteOperationParams(operation="get_family", params={"xref": "@F1@"}),
+        )
+    )
     assert "Family @F1@" in result
 
 
@@ -155,8 +175,10 @@ async def test_execute_get_ancestors(mcp: Any, fixtures_dir: Path) -> None:
     result = _extract_text(
         await tool.fn(
             ctx=ctx,
-            operation="get_ancestors",
-            params={"xref": "@I9@", "max_generations": 5},
+            arguments=ExecuteOperationParams(
+                operation="get_ancestors",
+                params={"xref": "@I9@", "max_generations": 5},
+            ),
         )
     )
     assert "Ancestors of" in result
@@ -169,8 +191,10 @@ async def test_execute_get_descendants(mcp: Any, fixtures_dir: Path) -> None:
     result = _extract_text(
         await tool.fn(
             ctx=ctx,
-            operation="get_descendants",
-            params={"xref": "@I1@", "max_generations": 5},
+            arguments=ExecuteOperationParams(
+                operation="get_descendants",
+                params={"xref": "@I1@", "max_generations": 5},
+            ),
         )
     )
     assert "Descendants of" in result
@@ -180,7 +204,12 @@ async def test_execute_get_descendants(mcp: Any, fixtures_dir: Path) -> None:
 async def test_execute_get_stats(mcp: Any, fixtures_dir: Path) -> None:
     ctx = _make_ctx(fixtures_dir, "medium.ged")
     tool = _find_tool(mcp, "execute")
-    result = _extract_text(await tool.fn(ctx=ctx, operation="get_stats"))
+    result = _extract_text(
+        await tool.fn(
+            ctx=ctx,
+            arguments=ExecuteOperationParams(operation="get_stats"),
+        )
+    )
     assert "GEDCOM Statistics" in result
     assert "Individuals: 15" in result
 
@@ -193,14 +222,24 @@ async def test_execute_get_stats(mcp: Any, fixtures_dir: Path) -> None:
 async def test_execute_none_params_defaults_to_empty(mcp: Any, fixtures_dir: Path) -> None:
     ctx = _make_ctx(fixtures_dir, "medium.ged")
     tool = _find_tool(mcp, "execute")
-    result = _extract_text(await tool.fn(ctx=ctx, operation="get_stats", params=None))
+    result = _extract_text(
+        await tool.fn(
+            ctx=ctx,
+            arguments=ExecuteOperationParams(operation="get_stats"),
+        )
+    )
     assert "GEDCOM Statistics" in result
 
 
 async def test_execute_search_persons_empty_params(mcp: Any, fixtures_dir: Path) -> None:
     ctx = _make_ctx(fixtures_dir)
     tool = _find_tool(mcp, "execute")
-    result = _extract_text(await tool.fn(ctx=ctx, operation="search_persons", params={}))
+    result = _extract_text(
+        await tool.fn(
+            ctx=ctx,
+            arguments=ExecuteOperationParams(operation="search_persons", params={}),
+        )
+    )
     assert "Found" in result
 
 
@@ -210,6 +249,8 @@ async def test_execute_validation_error_detail(mcp: Any, fixtures_dir: Path) -> 
     with pytest.raises(McpToolError, match="birth_year_min"):
         await tool.fn(
             ctx=ctx,
-            operation="search_persons",
-            params={"birth_year_min": "not_a_number"},
+            arguments=ExecuteOperationParams(
+                operation="search_persons",
+                params={"birth_year_min": "not_a_number"},
+            ),
         )
