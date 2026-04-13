@@ -9,7 +9,7 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from typing import Any
 
-from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp import Context, FastMCP
 from mcp.types import ToolAnnotations
 from mcp_codemode import (
     ExecuteOperationParams,
@@ -87,7 +87,7 @@ def _register_tools(mcp: FastMCP) -> None:
             openWorldHint=True,
         ),
     )
-    async def execute(ctx: Any, arguments: ExecuteOperationParams) -> list[Any]:
+    async def execute(ctx: Context[Any, Any, Any], arguments: ExecuteOperationParams) -> list[Any]:
         return await execute_operation(arguments.model_dump(), OPERATION_REGISTRY, ctx)
 
 
