@@ -6,7 +6,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from mcp.server.fastmcp import Context
 from mcp.types import TextContent
 
 from gedcom_mcp.parser.models import Individual
@@ -24,30 +23,12 @@ from gedcom_mcp.tools._formatting import (
 )
 
 
-async def handle_search_persons(
-    ctx: Context[Any, Any, Any],
-    *,
-    name: str | None = None,
-    birth_year_min: int | None = None,
-    birth_year_max: int | None = None,
-    death_year_min: int | None = None,
-    death_year_max: int | None = None,
-    place: str | None = None,
-    sex: str | None = None,
-    max_results: int | None = None,
-) -> list[TextContent]:
+async def handle_search_persons(ctx: Any, params: Any) -> list[TextContent]:
     """Search individuals in the loaded GEDCOM database.
 
     Args:
         ctx: MCP request context.
-        name: Case-insensitive name substring.
-        birth_year_min: Minimum birth year (inclusive).
-        birth_year_max: Maximum birth year (inclusive).
-        death_year_min: Minimum death year (inclusive).
-        death_year_max: Maximum death year (inclusive).
-        place: Case-insensitive place substring.
-        sex: Sex filter (M/F/U).
-        max_results: Maximum number of results to return.
+        params: SearchPersonsParams with filter fields.
 
     Returns:
         Formatted search results.
@@ -56,18 +37,22 @@ async def handle_search_persons(
         db = require_database(ctx)
         app_ctx = get_app_context(ctx)
         ceiling = app_ctx.settings.max_search_results
-        limit = min(max_results or 50, ceiling)
+        limit = min(params.max_results or 50, ceiling)
 
         matches: list[Individual] = []
         for indi in db.individuals.values():
-            if name and not matches_name(indi, name):
+            if params.name and not matches_name(indi, params.name):
                 continue
-            if place and not matches_place(indi, place):
+            if params.place and not matches_place(indi, params.place):
                 continue
-            if sex and indi.sex != sex.upper():
+            if params.sex and indi.sex != params.sex.upper():
                 continue
             if not matches_year_range(
-                indi, birth_year_min, birth_year_max, death_year_min, death_year_max
+                indi,
+                params.birth_year_min,
+                params.birth_year_max,
+                params.death_year_min,
+                params.death_year_max,
             ):
                 continue
             matches.append(indi)

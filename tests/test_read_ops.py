@@ -9,6 +9,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from gedcom_mcp.operations import GetFamilyParams, GetPersonParams
 from gedcom_mcp.parser import parse_file
 from gedcom_mcp.parser.models import (
     Family,
@@ -44,7 +45,7 @@ def _make_ctx(
     return ctx
 
 
-def _text(result: list) -> str:
+def _text(result: list) -> str:  # type: ignore[type-arg]
     """Extract text from list[TextContent]."""
     return "\n".join(item.text for item in result)
 
@@ -56,7 +57,9 @@ def _text(result: list) -> str:
 
 async def test_handle_get_person_detailed(fixtures_dir: Path) -> None:
     ctx = _make_ctx(fixtures_dir)
-    result = _text(await handle_get_person(ctx, xref="@I1@", response_format="detailed"))
+    result = _text(
+        await handle_get_person(ctx, GetPersonParams(xref="@I1@", response_format="detailed"))
+    )
     assert "John /Smith/" in result
     assert "1 JAN 1900" in result
     assert "London, England" in result
@@ -64,7 +67,9 @@ async def test_handle_get_person_detailed(fixtures_dir: Path) -> None:
 
 async def test_handle_get_person_concise(fixtures_dir: Path) -> None:
     ctx = _make_ctx(fixtures_dir)
-    result = _text(await handle_get_person(ctx, xref="@I1@", response_format="concise"))
+    result = _text(
+        await handle_get_person(ctx, GetPersonParams(xref="@I1@", response_format="concise"))
+    )
     assert "John /Smith/" in result
     assert "@F1@" in result
 
@@ -72,7 +77,7 @@ async def test_handle_get_person_concise(fixtures_dir: Path) -> None:
 async def test_handle_get_person_not_found(fixtures_dir: Path) -> None:
     ctx = _make_ctx(fixtures_dir)
     with pytest.raises(McpToolError, match="not found"):
-        await handle_get_person(ctx, xref="@I999@", response_format="detailed")
+        await handle_get_person(ctx, GetPersonParams(xref="@I999@", response_format="detailed"))
 
 
 async def test_handle_get_person_detailed_with_notes_sources_events() -> None:
@@ -115,7 +120,9 @@ async def test_handle_get_person_detailed_with_notes_sources_events() -> None:
     )
     ctx = MagicMock()
     ctx.request_context.lifespan_context = AppContext(settings=Settings(), database=db)
-    result = _text(await handle_get_person(ctx, xref="@I1@", response_format="detailed"))
+    result = _text(
+        await handle_get_person(ctx, GetPersonParams(xref="@I1@", response_format="detailed"))
+    )
     assert "Alternate names: Johnny Smith" in result
     assert "OCCU: 1925, London (Teacher)" in result
     assert "RESI: no date" in result
@@ -131,7 +138,9 @@ async def test_handle_get_person_detailed_with_notes_sources_events() -> None:
 
 async def test_handle_get_family_by_fam_xref(fixtures_dir: Path) -> None:
     ctx = _make_ctx(fixtures_dir)
-    result = _text(await handle_get_family(ctx, xref="@F1@", response_format="detailed"))
+    result = _text(
+        await handle_get_family(ctx, GetFamilyParams(xref="@F1@", response_format="detailed"))
+    )
     assert "Family @F1@" in result
     assert "John /Smith/" in result
     assert "Mary /Jones/" in result
@@ -140,26 +149,32 @@ async def test_handle_get_family_by_fam_xref(fixtures_dir: Path) -> None:
 
 async def test_handle_get_family_by_indi_xref(fixtures_dir: Path) -> None:
     ctx = _make_ctx(fixtures_dir)
-    result = _text(await handle_get_family(ctx, xref="@I1@", response_format="concise"))
+    result = _text(
+        await handle_get_family(ctx, GetFamilyParams(xref="@I1@", response_format="concise"))
+    )
     assert "Family @F1@" in result
     assert "Husband" in result
 
 
 async def test_handle_get_family_indi_not_spouse(fixtures_dir: Path) -> None:
     ctx = _make_ctx(fixtures_dir)
-    result = _text(await handle_get_family(ctx, xref="@I3@", response_format="detailed"))
+    result = _text(
+        await handle_get_family(ctx, GetFamilyParams(xref="@I3@", response_format="detailed"))
+    )
     assert "not a spouse" in result
 
 
 async def test_handle_get_family_not_found(fixtures_dir: Path) -> None:
     ctx = _make_ctx(fixtures_dir)
     with pytest.raises(McpToolError, match="not found"):
-        await handle_get_family(ctx, xref="@F999@", response_format="detailed")
+        await handle_get_family(ctx, GetFamilyParams(xref="@F999@", response_format="detailed"))
 
 
 async def test_handle_get_family_concise_format(fixtures_dir: Path) -> None:
     ctx = _make_ctx(fixtures_dir)
-    result = _text(await handle_get_family(ctx, xref="@F1@", response_format="concise"))
+    result = _text(
+        await handle_get_family(ctx, GetFamilyParams(xref="@F1@", response_format="concise"))
+    )
     assert "Marriage:" in result
     assert "10 JUN 1924" in result
 
@@ -202,7 +217,9 @@ async def test_handle_get_family_detailed_with_divorce_notes_sources() -> None:
     )
     ctx = MagicMock()
     ctx.request_context.lifespan_context = AppContext(settings=Settings(), database=db)
-    result = _text(await handle_get_family(ctx, xref="@F1@", response_format="detailed"))
+    result = _text(
+        await handle_get_family(ctx, GetFamilyParams(xref="@F1@", response_format="detailed"))
+    )
     assert "Divorce: 5 MAR 1910, London" in result
     assert "CENS: 1901, England" in result
     assert "Note: Family was prominent." in result
@@ -221,6 +238,8 @@ async def test_handle_get_family_person_label_no_name() -> None:
     )
     ctx = MagicMock()
     ctx.request_context.lifespan_context = AppContext(settings=Settings(), database=db)
-    result = _text(await handle_get_family(ctx, xref="@F1@", response_format="concise"))
+    result = _text(
+        await handle_get_family(ctx, GetFamilyParams(xref="@F1@", response_format="concise"))
+    )
     assert "Husband: @I1@" in result
     assert "- @I1@" in result

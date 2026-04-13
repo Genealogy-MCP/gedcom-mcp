@@ -7,7 +7,6 @@ from __future__ import annotations
 from collections import Counter
 from typing import Any
 
-from mcp.server.fastmcp import Context
 from mcp.types import TextContent
 
 from gedcom_mcp.tools._errors import (
@@ -23,18 +22,12 @@ from gedcom_mcp.tools._formatting import (
 )
 
 
-async def handle_get_ancestors(
-    ctx: Context[Any, Any, Any],
-    *,
-    xref: str,
-    max_generations: int | None = None,
-) -> list[TextContent]:
+async def handle_get_ancestors(ctx: Any, params: Any) -> list[TextContent]:
     """Get the ancestor tree for an individual.
 
     Args:
         ctx: MCP request context.
-        xref: Cross-reference ID of the starting individual.
-        max_generations: Maximum depth (default from settings).
+        params: GetAncestorsParams with xref and max_generations.
 
     Returns:
         Formatted ancestor tree.
@@ -43,19 +36,19 @@ async def handle_get_ancestors(
         db = require_database(ctx)
         app_ctx = get_app_context(ctx)
 
-        if xref not in db.individuals:
+        if params.xref not in db.individuals:
             raise McpToolError(
-                f"Individual '{xref}' not found. "
+                f"Individual '{params.xref}' not found. "
                 "Use search_persons to find valid cross-reference IDs."
             )
 
         max_gen = min(
-            max_generations or app_ctx.settings.default_ancestor_depth,
+            params.max_generations or app_ctx.settings.default_ancestor_depth,
             app_ctx.settings.max_tree_depth,
         )
 
-        root = db.individuals[xref]
-        ancestors = get_ancestors(xref, db, max_gen)
+        root = db.individuals[params.xref]
+        ancestors = get_ancestors(params.xref, db, max_gen)
 
         if not ancestors:
             text = f"No ancestors found for {person_summary(root)} (no parent links in the data)."
@@ -74,21 +67,15 @@ async def handle_get_ancestors(
     except McpToolError:
         raise
     except Exception as e:
-        raise_tool_error(e, "get ancestors", entity_type="individual", identifier=xref)
+        raise_tool_error(e, "get ancestors", entity_type="individual", identifier=params.xref)
 
 
-async def handle_get_descendants(
-    ctx: Context[Any, Any, Any],
-    *,
-    xref: str,
-    max_generations: int | None = None,
-) -> list[TextContent]:
+async def handle_get_descendants(ctx: Any, params: Any) -> list[TextContent]:
     """Get the descendant tree for an individual.
 
     Args:
         ctx: MCP request context.
-        xref: Cross-reference ID of the starting individual.
-        max_generations: Maximum depth (default from settings).
+        params: GetDescendantsParams with xref and max_generations.
 
     Returns:
         Formatted descendant tree.
@@ -97,19 +84,19 @@ async def handle_get_descendants(
         db = require_database(ctx)
         app_ctx = get_app_context(ctx)
 
-        if xref not in db.individuals:
+        if params.xref not in db.individuals:
             raise McpToolError(
-                f"Individual '{xref}' not found. "
+                f"Individual '{params.xref}' not found. "
                 "Use search_persons to find valid cross-reference IDs."
             )
 
         max_gen = min(
-            max_generations or app_ctx.settings.default_descendant_depth,
+            params.max_generations or app_ctx.settings.default_descendant_depth,
             app_ctx.settings.max_tree_depth,
         )
 
-        root = db.individuals[xref]
-        descendants = get_descendants(xref, db, max_gen)
+        root = db.individuals[params.xref]
+        descendants = get_descendants(params.xref, db, max_gen)
 
         if not descendants:
             text = f"No descendants found for {person_summary(root)}."
@@ -128,14 +115,15 @@ async def handle_get_descendants(
     except McpToolError:
         raise
     except Exception as e:
-        raise_tool_error(e, "get descendants", entity_type="individual", identifier=xref)
+        raise_tool_error(e, "get descendants", entity_type="individual", identifier=params.xref)
 
 
-async def handle_get_stats(ctx: Context[Any, Any, Any]) -> list[TextContent]:
+async def handle_get_stats(ctx: Any, params: Any) -> list[TextContent]:
     """Get statistics about the loaded GEDCOM file.
 
     Args:
         ctx: MCP request context.
+        params: GetStatsParams (empty model).
 
     Returns:
         Formatted statistics.

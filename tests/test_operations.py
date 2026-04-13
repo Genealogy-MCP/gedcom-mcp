@@ -1,15 +1,15 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # Copyright (C) 2026 Federico Castagnini
-"""Tests for the operation registry, search function, and parameter summarization."""
+"""Tests for the operation registry and Pydantic parameter models."""
 
 from __future__ import annotations
 
 import pytest
+from mcp_codemode import search_operations, summarize_params
 from pydantic import ValidationError
 
 from gedcom_mcp.operations import (
     OPERATION_REGISTRY,
-    VALID_CATEGORIES,
     GetAncestorsParams,
     GetDescendantsParams,
     GetFamilyParams,
@@ -17,8 +17,6 @@ from gedcom_mcp.operations import (
     GetStatsParams,
     LoadFileParams,
     SearchPersonsParams,
-    search_operations,
-    summarize_params,
 )
 
 EXPECTED_OPERATIONS = {
@@ -30,6 +28,8 @@ EXPECTED_OPERATIONS = {
     "get_descendants",
     "get_stats",
 }
+
+VALID_CATEGORIES = frozenset({"setup", "search", "read", "analysis"})
 
 
 # ---------------------------------------------------------------------------
@@ -124,66 +124,66 @@ def test_category_analysis() -> None:
 
 
 # ---------------------------------------------------------------------------
-# search_operations
+# search_operations (from mcp_codemode library)
 # ---------------------------------------------------------------------------
 
 
 def test_search_empty_query_returns_all() -> None:
-    results = search_operations("")
+    results = search_operations("", OPERATION_REGISTRY)
     assert len(results) == len(EXPECTED_OPERATIONS)
 
 
-def test_search_empty_query_sorted_by_name() -> None:
-    results = search_operations("")
-    names = [r.name for r in results]
-    assert names == sorted(names)
+def test_search_empty_query_returns_all_names() -> None:
+    results = search_operations("", OPERATION_REGISTRY)
+    names = {r.name for r in results}
+    assert names == EXPECTED_OPERATIONS
 
 
 def test_search_exact_name_scores_highest() -> None:
-    results = search_operations("get_person")
+    results = search_operations("get_person", OPERATION_REGISTRY)
     assert results[0].name == "get_person"
 
 
 def test_search_token_in_name_scores_higher_than_description() -> None:
-    results = search_operations("ancestor")
+    results = search_operations("ancestor", OPERATION_REGISTRY)
     assert results[0].name == "get_ancestors"
 
 
 def test_search_by_summary_keyword() -> None:
-    results = search_operations("family")
+    results = search_operations("family", OPERATION_REGISTRY)
     names = {r.name for r in results}
     assert "get_family" in names
 
 
 def test_search_no_match() -> None:
-    results = search_operations("zzzznonexistentzzzz")
+    results = search_operations("zzzznonexistentzzzz", OPERATION_REGISTRY)
     assert results == []
 
 
 def test_search_case_insensitive() -> None:
-    results = search_operations("PERSON")
+    results = search_operations("PERSON", OPERATION_REGISTRY)
     names = {r.name for r in results}
     assert "search_persons" in names or "get_person" in names
 
 
 def test_search_with_category_filter() -> None:
-    results = search_operations("", category="read")
+    results = search_operations("", OPERATION_REGISTRY, category="read")
     assert len(results) == 2
     assert all(r.category == "read" for r in results)
 
 
 def test_search_with_category_and_query() -> None:
-    results = search_operations("person", category="read")
+    results = search_operations("person", OPERATION_REGISTRY, category="read")
     assert results[0].name == "get_person"
 
 
 def test_search_max_results() -> None:
-    results = search_operations("", max_results=3)
+    results = search_operations("", OPERATION_REGISTRY, max_results=3)
     assert len(results) == 3
 
 
 # ---------------------------------------------------------------------------
-# summarize_params
+# summarize_params (from mcp_codemode library)
 # ---------------------------------------------------------------------------
 
 
@@ -192,7 +192,7 @@ def test_summarize_params_load_file() -> None:
     assert len(summary) == 1
     assert summary[0]["name"] == "file_path"
     assert summary[0]["required"] is True
-    assert summary[0]["type"] == "string"
+    assert summary[0]["type"] == "str"
 
 
 def test_summarize_params_search_persons() -> None:
@@ -222,7 +222,7 @@ def test_summarize_params_empty_model() -> None:
 def test_summarize_params_integer_type() -> None:
     summary = summarize_params(GetAncestorsParams)
     gen_param = next(p for p in summary if p["name"] == "max_generations")
-    assert gen_param["type"] == "integer"
+    assert "int" in gen_param["type"]
 
 
 # ---------------------------------------------------------------------------

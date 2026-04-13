@@ -6,7 +6,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from mcp.server.fastmcp import Context
 from mcp.types import TextContent
 
 from gedcom_mcp.parser import parse_file
@@ -14,12 +13,12 @@ from gedcom_mcp.tools._errors import McpToolError, get_app_context, raise_tool_e
 from gedcom_mcp.tools._formatting import validate_path
 
 
-async def handle_load_file(ctx: Context[Any, Any, Any], *, file_path: str) -> list[TextContent]:
+async def handle_load_file(ctx: Any, params: Any) -> list[TextContent]:
     """Load and parse a GEDCOM file into the application context.
 
     Args:
         ctx: MCP request context.
-        file_path: Absolute path to the .ged file.
+        params: LoadFileParams with file_path.
 
     Returns:
         Summary with filename, version, and record counts.
@@ -27,7 +26,7 @@ async def handle_load_file(ctx: Context[Any, Any, Any], *, file_path: str) -> li
     app_ctx = get_app_context(ctx)
     try:
         resolved = validate_path(
-            file_path,
+            params.file_path,
             app_ctx.settings.allowed_base_dirs,
             app_ctx.settings.max_file_size_mb,
         )

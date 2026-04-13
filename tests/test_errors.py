@@ -37,7 +37,7 @@ def test_raise_tool_error_basic() -> None:
 
 
 def test_raise_tool_error_with_context() -> None:
-    with pytest.raises(McpToolError, match=r"\[individual: @I1@\]"):
+    with pytest.raises(McpToolError, match=r"\[entity_type: individual\].*\[id: @I1@\]"):
         raise_tool_error(
             ValueError("not found"), "lookup", entity_type="individual", identifier="@I1@"
         )

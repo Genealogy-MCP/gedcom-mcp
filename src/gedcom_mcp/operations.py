@@ -3,16 +3,12 @@
 """Operation registry for Code Mode architecture (MCP-ORG-1 through MCP-ORG-4).
 
 Single source of truth for all operations the server supports. Each OperationEntry
-bundles metadata, parameter schema, and handler function reference. The search
-function enables LLM discovery via the search meta-tool.
+bundles metadata, parameter schema, and handler function reference.
 """
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from dataclasses import dataclass, field
-from typing import Any
-
+from mcp_codemode import OperationEntry
 from pydantic import BaseModel
 
 from gedcom_mcp.tools.analysis import (
@@ -23,30 +19,6 @@ from gedcom_mcp.tools.analysis import (
 from gedcom_mcp.tools.read_ops import handle_get_family, handle_get_person
 from gedcom_mcp.tools.search_ops import handle_search_persons
 from gedcom_mcp.tools.setup import handle_load_file
-
-# ---------------------------------------------------------------------------
-# Registry data structures
-# ---------------------------------------------------------------------------
-
-
-@dataclass(frozen=True)
-class OperationEntry:
-    """Metadata for a single operation in the registry.
-
-    Bundles the operation's description, parameter schema, handler function,
-    and behavioral flags into a single immutable entry.
-    """
-
-    name: str
-    summary: str
-    description: str
-    category: str
-    params_schema: type[BaseModel]
-    handler: Callable[..., Any]
-    read_only: bool
-    destructive: bool
-    token_warning: str | None = field(default=None)
-
 
 # ---------------------------------------------------------------------------
 # Pydantic param models for runtime validation
@@ -215,105 +187,3 @@ OPERATION_REGISTRY: dict[str, OperationEntry] = {
         destructive=False,
     ),
 }
-
-
-# ---------------------------------------------------------------------------
-# Search function
-# ---------------------------------------------------------------------------
-
-VALID_CATEGORIES = frozenset({"setup", "search", "read", "analysis"})
-
-
-def search_operations(
-    query: str,
-    *,
-    category: str | None = None,
-    max_results: int = 10,
-) -> list[OperationEntry]:
-    """Search the operation registry by keyword matching with weighted scoring.
-
-    Scoring:
-        +3: exact operation name match
-        +2: query token found in operation name
-        +1: query token found in summary or description
-
-    Args:
-        query: Free-text search query. Empty string returns all operations.
-        category: Optional category filter (setup/search/read/analysis).
-        max_results: Maximum number of results to return.
-
-    Returns:
-        List of matching OperationEntry objects sorted by relevance.
-    """
-    ops = OPERATION_REGISTRY.values()
-
-    if category:
-        ops = [op for op in ops if op.category == category]
-
-    if not query.strip():
-        return sorted(ops, key=lambda op: op.name)[:max_results]
-
-    tokens = query.lower().split()
-    scored: list[tuple[int, OperationEntry]] = []
-
-    for op in ops:
-        score = 0
-        name_lower = op.name.lower()
-
-        # +3 for exact name match
-        if query.lower() == name_lower:
-            score += 3
-
-        for token in tokens:
-            # +2 for token in operation name
-            if token in name_lower:
-                score += 2
-            # +1 for token in summary or description
-            elif token in op.summary.lower() or token in op.description.lower():
-                score += 1
-
-        if score > 0:
-            scored.append((score, op))
-
-    scored.sort(key=lambda pair: (-pair[0], pair[1].name))
-    return [op for _, op in scored[:max_results]]
-
-
-# ---------------------------------------------------------------------------
-# Parameter summarization
-# ---------------------------------------------------------------------------
-
-
-def summarize_params(schema: type[BaseModel]) -> list[dict[str, str | bool]]:
-    """Produce an LLM-friendly summary of a Pydantic model's fields.
-
-    Args:
-        schema: Pydantic BaseModel subclass to introspect.
-
-    Returns:
-        List of dicts with keys: name, type, required, description.
-    """
-    result: list[dict[str, str | bool]] = []
-    for name, field_info in schema.model_fields.items():
-        is_required = field_info.is_required()
-        field_type = "string"
-        if field_info.annotation is not None:
-            annotation_str = str(field_info.annotation)
-            if "int" in annotation_str:
-                field_type = "integer"
-            elif "bool" in annotation_str:
-                field_type = "boolean"
-            elif "float" in annotation_str:
-                field_type = "number"
-
-        entry: dict[str, str | bool] = {
-            "name": name,
-            "type": field_type,
-            "required": is_required,
-            "description": field_info.description or "",
-        }
-        if not is_required and field_info.default is not None:
-            entry["default"] = str(field_info.default)
-
-        result.append(entry)
-    return result

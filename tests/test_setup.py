@@ -9,6 +9,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from gedcom_mcp.operations import LoadFileParams
 from gedcom_mcp.server import AppContext
 from gedcom_mcp.settings import Settings
 from gedcom_mcp.tools._errors import McpToolError
@@ -23,14 +24,16 @@ def _make_ctx(settings: Settings | None = None) -> MagicMock:
     return ctx
 
 
-def _text(result: list) -> str:
+def _text(result: list) -> str:  # type: ignore[type-arg]
     """Extract text from list[TextContent]."""
     return "\n".join(item.text for item in result)
 
 
 async def test_handle_load_file(fixtures_dir: Path) -> None:
     ctx = _make_ctx()
-    result = _text(await handle_load_file(ctx, file_path=str(fixtures_dir / "minimal.ged")))
+    result = _text(
+        await handle_load_file(ctx, LoadFileParams(file_path=str(fixtures_dir / "minimal.ged")))
+    )
     assert "Loaded: minimal.ged" in result
     assert "Individuals: 3" in result
     assert "Families: 1" in result
@@ -39,7 +42,9 @@ async def test_handle_load_file(fixtures_dir: Path) -> None:
 
 async def test_handle_load_file_medium(fixtures_dir: Path) -> None:
     ctx = _make_ctx()
-    result = _text(await handle_load_file(ctx, file_path=str(fixtures_dir / "medium.ged")))
+    result = _text(
+        await handle_load_file(ctx, LoadFileParams(file_path=str(fixtures_dir / "medium.ged")))
+    )
     assert "Individuals: 15" in result
     assert "Families: 5" in result
 
@@ -47,32 +52,32 @@ async def test_handle_load_file_medium(fixtures_dir: Path) -> None:
 async def test_handle_load_file_relative_path() -> None:
     ctx = _make_ctx()
     with pytest.raises(McpToolError, match="Path must be absolute"):
-        await handle_load_file(ctx, file_path="relative/path.ged")
+        await handle_load_file(ctx, LoadFileParams(file_path="relative/path.ged"))
 
 
 async def test_handle_load_file_wrong_extension() -> None:
     ctx = _make_ctx()
     with pytest.raises(McpToolError, match="must have a .ged extension"):
-        await handle_load_file(ctx, file_path="/tmp/file.txt")
+        await handle_load_file(ctx, LoadFileParams(file_path="/tmp/file.txt"))
 
 
 async def test_handle_load_file_not_found() -> None:
     ctx = _make_ctx()
     with pytest.raises(McpToolError, match="File not found"):
-        await handle_load_file(ctx, file_path="/tmp/nonexistent.ged")
+        await handle_load_file(ctx, LoadFileParams(file_path="/tmp/nonexistent.ged"))
 
 
 async def test_handle_load_file_outside_allowed_dirs(fixtures_dir: Path) -> None:
     ctx = _make_ctx(settings=Settings(allowed_base_dirs="/some/other/dir"))
     with pytest.raises(McpToolError, match="outside allowed directories"):
-        await handle_load_file(ctx, file_path=str(fixtures_dir / "minimal.ged"))
+        await handle_load_file(ctx, LoadFileParams(file_path=str(fixtures_dir / "minimal.ged")))
 
 
 async def test_handle_load_file_replaces_previous(fixtures_dir: Path) -> None:
     ctx = _make_ctx()
-    await handle_load_file(ctx, file_path=str(fixtures_dir / "minimal.ged"))
+    await handle_load_file(ctx, LoadFileParams(file_path=str(fixtures_dir / "minimal.ged")))
     app_ctx = ctx.request_context.lifespan_context
     assert len(app_ctx.database.individuals) == 3
 
-    await handle_load_file(ctx, file_path=str(fixtures_dir / "empty.ged"))
+    await handle_load_file(ctx, LoadFileParams(file_path=str(fixtures_dir / "empty.ged")))
     assert len(app_ctx.database.individuals) == 0
