@@ -563,7 +563,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "mcp", extras = ["cli"], specifier = ">=1.2.0" },
-    { name = "mcp-codemode", git = "https://gitlab.com/genealogy-mcp/genealogy-mcp-codemode.git?rev=v1.0.0" },
+    { name = "mcp-codemode", url = "https://gitlab.com/genealogy-mcp/genealogy-mcp-codemode/-/archive/v1.0.0/genealogy-mcp-codemode-v1.0.0.tar.gz" },
     { name = "pydantic", specifier = ">=2.0.0" },
     { name = "pydantic-settings", specifier = ">=2.6.0" },
 ]
@@ -737,10 +737,14 @@ cli = [
 [[package]]
 name = "mcp-codemode"
 version = "1.0.0"
-source = { git = "https://gitlab.com/genealogy-mcp/genealogy-mcp-codemode.git?rev=v1.0.0#30e04366fd9de78b6bca937df260023e2cf459bb" }
+source = { url = "https://gitlab.com/genealogy-mcp/genealogy-mcp-codemode/-/archive/v1.0.0/genealogy-mcp-codemode-v1.0.0.tar.gz" }
 dependencies = [
     { name = "pydantic" },
 ]
+sdist = { hash = "sha256:68d5659d5b8ce1e195b2e99d39cdefffcf7845c040f24b1e0ecff2c2fa287981" }
+
+[package.metadata]
+requires-dist = [{ name = "pydantic", specifier = ">=2.0" }]
 
 [[package]]
 name = "mdurl"
