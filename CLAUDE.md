@@ -28,6 +28,12 @@ This repo lives on GitLab. GitHub is a read-only push-mirror.
 - If a skill or sub-agent attempts a GitHub write operation, redirect it to the
   `glab` equivalent or stop and ask the user.
 
+## Dependencies
+
+This server uses [mcp-codemode](https://gitlab.com/genealogy-mcp/genealogy-mcp-codemode)
+for its Code Mode infrastructure (search/execute meta-tools, operation registry).
+When debugging search or execute behavior, look in mcp-codemode, not in this repo.
+
 ## Architecture
 
 This server uses the Code Mode architecture (MCP-29): exactly 2 meta-tools
